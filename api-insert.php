@@ -12,15 +12,24 @@
 
  include "config.php";
 
- $sql = "SELECT * FROM usertable WHERE email='{$email}' AND pass='{$password}'";
+ $sql = "SELECT * FROM usertable WHERE email='{$email}'";
  
  $result = mysqli_query($conn, $sql) or die("SQL Query Failed");
 
  if(mysqli_num_rows($result)>0 ){
-    $output = mysqli_fetch_all($result, MYSQLI_ASSOC);
-    echo json_encode(array('data'=>$output, 'status'=> true));
+    
+    $user = $result->fetch_assoc();
+    $hashedPassword = $user['pass'];
+    if (password_verify($password, $hashedPassword)) {
+        // Remove the password field before sending the response
+        unset($user['pass']);
+        echo json_encode(array('data' => $user, 'status' => true));
+    } else {
+        // echo json_encode(array('data' => $user, 'status' => true));
+        echo json_encode(array('message' => 'Wrong Password', 'status' => false));
+    }
  }else{
-     echo json_encode(array('message'=>'Wrong Email or Password', 'status'=> false));
+     echo json_encode(array('message'=>'Wrong Email', 'status'=> false));
  }
 
 
